@@ -271,6 +271,36 @@ const updateAddress = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { address, index } = req.body;
 
+  // Validate required fields
+  if (!address) {
+    throw new ApiError(400, "Address object is required");
+  }
+
+  // Validate address fields
+  if (!address.name || address.name.trim().length < 2) {
+    throw new ApiError(400, "Address name must be at least 2 characters long");
+  }
+  
+  if (!address.phone || !/^[0-9]{10}$/.test(address.phone)) {
+    throw new ApiError(400, "Phone must be a valid 10-digit number");
+  }
+  
+  if (!address.street || address.street.trim().length < 3) {
+    throw new ApiError(400, "Street must be at least 3 characters long");
+  }
+  
+  if (!address.city || address.city.trim().length < 2) {
+    throw new ApiError(400, "City must be at least 2 characters long");
+  }
+  
+  if (!address.state || address.state.trim().length < 2) {
+    throw new ApiError(400, "State must be at least 2 characters long");
+  }
+  
+  if (!address.postalCode || !/^[0-9]{6}$/.test(address.postalCode)) {
+    throw new ApiError(400, "Postal Code must be a valid 6-digit number");
+  }
+
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
 
@@ -281,6 +311,11 @@ const updateAddress = asyncHandler(async (req, res) => {
 
   // If index exists => UPDATE
   if (index !== undefined && index !== null) {
+    // Validate index is a number
+    if (typeof index !== 'number' || !Number.isInteger(index)) {
+      throw new ApiError(400, "Index must be a valid integer");
+    }
+    
     if (index < 0 || index >= user.addresses.length) {
       throw new ApiError(400, "Invalid address index");
     }
