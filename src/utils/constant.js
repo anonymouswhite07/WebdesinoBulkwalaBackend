@@ -40,6 +40,12 @@ export const getCookieOptions = (req) => {
     cookieOptions.sameSite = "Lax"; // Safer option for Safari
     // Don't set domain explicitly to avoid issues
     delete cookieOptions.domain;
+    
+    // Additional Safari-specific fixes
+    // Remove secure flag for localhost in Safari to avoid issues
+    if (!isProd && req.headers.host && req.headers.host.includes('localhost')) {
+      cookieOptions.secure = false;
+    }
   }
   
   // For all browsers in production, ensure we have the right settings EXCEPT for Safari
