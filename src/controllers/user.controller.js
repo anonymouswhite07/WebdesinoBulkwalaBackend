@@ -436,11 +436,30 @@ const changePassword = asyncHandler(async (req, res) => {
 
 const refreshUserToken = asyncHandler(async (req, res) => {
   try {
+    // Log detailed information about the request for debugging
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+    const isMobileSafari = /iPhone|iPad|iPod.*Safari/i.test(userAgent) && !/Chrome/i.test(userAgent);
+    
+    console.log("Refresh token request:", {
+      userAgent,
+      isMobileSafari,
+      hasRefreshToken: !!req.cookies.refreshToken,
+      refreshToken: req.cookies.refreshToken ? '[REDACTED]' : 'NONE',
+      cookies: Object.keys(req.cookies || {}),
+      headers: {
+        origin: req.headers.origin,
+        referer: req.headers.referer
+      }
+    });
+
     // Get refresh token from cookies
     const incomingRefreshToken = req.cookies.refreshToken;
     
     if (!incomingRefreshToken) {
-      throw new ApiError(401, "Unauthorized request - No refresh token");
+      console.log("Refresh token error: No refresh token in cookies");
+      return res.status(401).json(
+        new ApiResponse(401, null, "Unauthorized request - No refresh token")
+      );
     }
 
     // Verify the refresh token
@@ -453,17 +472,26 @@ const refreshUserToken = asyncHandler(async (req, res) => {
     const user = await User.findById(decodedToken._id);
     
     if (!user) {
-      throw new ApiError(401, "Invalid refresh token - User not found");
+      console.log("Refresh token error: User not found for token");
+      return res.status(401).json(
+        new ApiResponse(401, null, "Invalid refresh token - User not found")
+      );
     }
 
     // Check if the refresh token matches the one in the database
     if (incomingRefreshToken !== user.refreshToken) {
-      throw new ApiError(401, "Refresh token is expired or used");
+      console.log("Refresh token error: Token mismatch");
+      return res.status(401).json(
+        new ApiResponse(401, null, "Refresh token is expired or used")
+      );
     }
 
     // Check if refresh token is expired
     if (user.refreshTokenExpireAt < new Date()) {
-      throw new ApiError(401, "Refresh token has expired");
+      console.log("Refresh token error: Token expired");
+      return res.status(401).json(
+        new ApiResponse(401, null, "Refresh token has expired")
+      );
     }
 
     // Generate new access and refresh tokens
@@ -478,6 +506,8 @@ const refreshUserToken = asyncHandler(async (req, res) => {
 
     // Set cookie options
     const options = getCookieOptions(req);
+    
+    console.log("Setting new cookies with options:", options);
 
     // Send response with new tokens
     return res
