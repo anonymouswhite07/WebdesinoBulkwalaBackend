@@ -19,7 +19,8 @@ export const getCookieOptions = (req) => {
   
   // For mobile Safari, we need to adjust settings for better compatibility
   const userAgent = req.headers['user-agent'] || '';
-  const isMobileSafari = /iPhone|iPad|iPod.*Safari/i.test(userAgent) && !/Chrome/i.test(userAgent);
+  // More comprehensive detection for iOS Safari including newer versions
+  const isMobileSafari = /iPhone|iPad|iPod.*Safari/i.test(userAgent) && !/Chrome|CriOS/i.test(userAgent);
   
   if (isMobileSafari) {
     // Mobile Safari has issues with SameSite=None, even with secure
@@ -35,7 +36,8 @@ export const getCookieOptions = (req) => {
   
   // Additional fix for Safari - ensure partitioned cookies work properly
   // This is important for Safari 16+ which uses Intelligent Tracking Prevention
-  if (/Safari/i.test(userAgent) && !/Chrome/i.test(userAgent)) {
+  // Updated detection to include CriOS (Chrome on iOS which is actually Safari)
+  if (/Safari/i.test(userAgent) && !/Chrome/i.test(userAgent) || /CriOS/i.test(userAgent)) {
     // For Safari, we might need to adjust the cookie settings
     cookieOptions.sameSite = "Lax"; // Safer option for Safari
     // Don't set domain explicitly to avoid issues
@@ -49,7 +51,7 @@ export const getCookieOptions = (req) => {
   }
   
   // For all browsers in production, ensure we have the right settings EXCEPT for Safari
-  if (isProd && !/Safari/i.test(userAgent)) {
+  if (isProd && !/Safari/i.test(userAgent) && !/CriOS/i.test(userAgent)) {
     // In production, we need SameSite=None for cross-domain requests (but not for Safari)
     cookieOptions.sameSite = "None";
     cookieOptions.secure = true;
@@ -65,6 +67,15 @@ export const getCookieOptions = (req) => {
     cookieOptions.secure = true;
     // Don't set domain explicitly for Render deployments to avoid issues
     cookieOptions.domain = undefined;
+  }
+  
+  // Additional fix for iOS 14+ Safari changes
+  // iOS 14+ has stricter cookie policies
+  if (isMobileSafari && isProd) {
+    // Ensure we're using the most compatible settings for iOS Safari in production
+    cookieOptions.sameSite = "Lax";
+    cookieOptions.secure = true; // Must be true for HTTPS in production
+    cookieOptions.domain = undefined; // Don't set domain to avoid issues
   }
   
   return cookieOptions;
