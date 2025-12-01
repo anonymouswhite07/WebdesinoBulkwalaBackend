@@ -55,6 +55,7 @@ app.use(
       "X-Requested-With",
       "Accept",
       "Origin",
+      "Cache-Control",  // Added to fix the CORS error
     ],
     exposedHeaders: ["Set-Cookie"],
   })
