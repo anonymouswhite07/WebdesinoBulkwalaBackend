@@ -8,48 +8,28 @@ export const getCookieOptions = (req) => {
   const sameSite = isProd ? "None" : "Lax";
   const secure = isProd ? isHttps : false;
   
-  return {
+  // Additional options for better mobile Safari compatibility
+  const cookieOptions = {
     httpOnly: true,
     secure: secure, // required for SameSite=None in production and when using HTTPS
     sameSite: sameSite, // Lax for development, None for production
     path: "/", // accessible everywhere
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days (matching refresh token expiry)
   };
+  
+  // For mobile Safari, we might need to adjust some settings
+  const userAgent = req.headers['user-agent'] || '';
+  const isMobileSafari = /iPhone|iPad|iPod.*Safari/i.test(userAgent) && !/Chrome/i.test(userAgent);
+  
+  if (isMobileSafari) {
+    // Mobile Safari sometimes has issues with SameSite=None, even with secure
+    // Let's use Lax for mobile Safari to be safer
+    cookieOptions.sameSite = "Lax";
+    // Ensure secure is false for localhost development
+    if (!isProd) {
+      cookieOptions.secure = false;
+    }
+  }
+  
+  return cookieOptions;
 };
-
-export const userRoleEnum = {
-  ADMIN: "admin",
-  CUSTOMER: "customer",
-  SELLER: "seller",
-};
-
-export const availableUserRoles = Object.values(userRoleEnum);
-
-export const paymentModeEnum = {
-  COD: "cod",
-  NETBANKING: "netbanking",
-  UPI: "upi",
-  CARD: "card",
-  ONLINE: "online",
-  PICKUP: "pickup", // ✅ New mode added
-};
-
-export const availablePaymentModes = Object.values(paymentModeEnum);
-
-export const orderStatusEnum = {
-  SHIPPED: "Shipped",
-  DELIVERED: "Delivered",
-  PROCESSING: "Processing",
-  CANCELLED: "Cancelled",
-};
-
-export const availableOrderStatus = Object.values(orderStatusEnum);
-
-export const paymentStatusEnum = {
-  PENDING: "pending",
-  SUCCESS: "success",
-  FAILED: "failed",
-  REFUNDED: "refunded",
-};
-
-export const availablePaymentStatus = Object.values(paymentStatusEnum);
