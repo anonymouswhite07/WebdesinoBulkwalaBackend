@@ -28,6 +28,12 @@ export const sendOtpSms = async (phone) => {
     throw new Error("Twilio Verify Service SID is not configured");
   }
   
+  // Validate the service SID format
+  if (!process.env.TWILIO_VERIFY_SERVICE_SID.startsWith('VA')) {
+    console.error("❌ Invalid TWILIO_VERIFY_SERVICE_SID format:", process.env.TWILIO_VERIFY_SERVICE_SID);
+    throw new Error("Twilio Verify Service SID is invalid - must start with 'VA'");
+  }
+  
   try {
     console.log("📱 Sending OTP to:", `+91${phone}`);
     console.log("🔧 Using service SID:", process.env.TWILIO_VERIFY_SERVICE_SID);
@@ -46,7 +52,8 @@ export const sendOtpSms = async (phone) => {
       message: error.message,
       code: error.code,
       status: error.status,
-      moreInfo: error.moreInfo
+      moreInfo: error.moreInfo,
+      serviceSid: process.env.TWILIO_VERIFY_SERVICE_SID
     });
     throw new Error(`Failed to send OTP via Twilio Verify: ${error.message}`);
   }
@@ -64,6 +71,12 @@ export const verifyOtpSms = async (phone, otp) => {
   if (!process.env.TWILIO_VERIFY_SERVICE_SID) {
     console.error("❌ TWILIO_VERIFY_SERVICE_SID is missing");
     throw new Error("Twilio Verify Service SID is not configured");
+  }
+  
+  // Validate the service SID format
+  if (!process.env.TWILIO_VERIFY_SERVICE_SID.startsWith('VA')) {
+    console.error("❌ Invalid TWILIO_VERIFY_SERVICE_SID format:", process.env.TWILIO_VERIFY_SERVICE_SID);
+    throw new Error("Twilio Verify Service SID is invalid - must start with 'VA'");
   }
   
   try {
@@ -84,7 +97,8 @@ export const verifyOtpSms = async (phone, otp) => {
       message: error.message,
       code: error.code,
       status: error.status,
-      moreInfo: error.moreInfo
+      moreInfo: error.moreInfo,
+      serviceSid: process.env.TWILIO_VERIFY_SERVICE_SID
     });
     throw new Error(`Failed to verify OTP via Twilio Verify: ${error.message}`);
   }
