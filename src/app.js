@@ -36,9 +36,24 @@ try {
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow all origins for better device compatibility
-      // This is safe for development and can be restricted in production if needed
-      return callback(null, true);
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      
+      // Check if origin is in allowed list
+      if (allowedOrigins.includes(origin)) {
+        console.log("✅ CORS allowed for origin:", origin);
+        return callback(null, true);
+      }
+      
+      // Also allow Vercel preview deployments dynamically
+      if (origin && origin.includes('vercel.app')) {
+        console.log("✅ CORS allowed for Vercel origin:", origin);
+        return callback(null, true);
+      }
+      
+      console.log("❌ CORS blocked for origin:", origin);
+      console.log("Allowed origins:", allowedOrigins);
+      return callback(new Error("❌ CORS blocked: " + origin));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],

@@ -153,7 +153,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   // ✅ Use dynamic cookie options for Safari compatibility
   const options = getCookieOptions(req);
-  console.log("Cookie options:", options);
+  console.log("🔧 Login: Setting cookies with options:", options);
+  console.log("🔧 Login: Refresh token length:", refreshToken?.length);
 
   return res
     .status(200)
@@ -199,6 +200,8 @@ const verifyOtpLogin = asyncHandler(async (req, res) => {
 
   // ✅ Use dynamic cookie options for Safari compatibility
   const options = getCookieOptions(req);
+  console.log("🔧 OTP Login: Setting cookies with options:", options);
+  console.log("🔧 OTP Login: Refresh token length:", refreshToken?.length);
 
   return res
     .status(200)

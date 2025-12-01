@@ -78,6 +78,34 @@ export const getCookieOptions = (req) => {
     cookieOptions.domain = undefined; // Don't set domain to avoid issues
   }
   
+  // SPECIAL FIX: Force proper cross-domain cookie settings for Vercel ↔ Render
+  // This ensures cookies work correctly in production cross-domain scenarios
+  if (isProd && req.headers.origin) {
+    const origin = req.headers.origin;
+    // Check if request is coming from Vercel frontend
+    if (origin.includes('vercel.app')) {
+      // Force the correct settings for cross-domain cookies
+      cookieOptions.sameSite = "None";
+      cookieOptions.secure = true;
+      cookieOptions.domain = undefined; // Let browser handle domain
+      cookieOptions.path = "/"; // Ensure cookie is accessible on all paths
+    }
+  }
+  
+  // Debug logging for cookie options
+  console.log("🔧 Cookie options generated:", {
+    isProd,
+    isHttps,
+    sameSite,
+    secure,
+    userAgent,
+    isMobileSafari,
+    isSafari: /Safari/i.test(userAgent) && !/Chrome/i.test(userAgent),
+    isCriOS: /CriOS/i.test(userAgent),
+    origin: req.headers.origin,
+    host: req.headers.host
+  });
+  
   return cookieOptions;
 };
 
