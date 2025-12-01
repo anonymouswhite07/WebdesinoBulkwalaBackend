@@ -40,6 +40,15 @@ export const getCookieOptions = (req) => {
     cookieOptions.secure = true;
   }
   
+  // Additional fix for Safari - ensure partitioned cookies work properly
+  // This is important for Safari 16+ which uses Intelligent Tracking Prevention
+  if (/Safari/i.test(userAgent) && !/Chrome/i.test(userAgent)) {
+    // For Safari, we might need to adjust the cookie settings
+    cookieOptions.sameSite = "Lax"; // Safer option for Safari
+    // Don't set domain explicitly to avoid issues
+    delete cookieOptions.domain;
+  }
+  
   return cookieOptions;
 };
 
