@@ -33,13 +33,6 @@ export const getCookieOptions = (req) => {
     cookieOptions.domain = undefined; // Let browser determine domain
   }
   
-  // For all browsers in production, ensure we have the right settings
-  if (isProd) {
-    // In production, we need SameSite=None for cross-domain requests
-    cookieOptions.sameSite = "None";
-    cookieOptions.secure = true;
-  }
-  
   // Additional fix for Safari - ensure partitioned cookies work properly
   // This is important for Safari 16+ which uses Intelligent Tracking Prevention
   if (/Safari/i.test(userAgent) && !/Chrome/i.test(userAgent)) {
@@ -47,6 +40,13 @@ export const getCookieOptions = (req) => {
     cookieOptions.sameSite = "Lax"; // Safer option for Safari
     // Don't set domain explicitly to avoid issues
     delete cookieOptions.domain;
+  }
+  
+  // For all browsers in production, ensure we have the right settings EXCEPT for Safari
+  if (isProd && !/Safari/i.test(userAgent)) {
+    // In production, we need SameSite=None for cross-domain requests (but not for Safari)
+    cookieOptions.sameSite = "None";
+    cookieOptions.secure = true;
   }
   
   return cookieOptions;
