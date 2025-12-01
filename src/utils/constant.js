@@ -8,7 +8,7 @@ export const getCookieOptions = (req) => {
   const sameSite = isProd ? "None" : "Lax";
   const secure = isProd ? isHttps : false;
   
-  // Additional options for better mobile Safari compatibility
+  // Additional options for better cross-origin compatibility
   const cookieOptions = {
     httpOnly: true,
     secure: secure, // required for SameSite=None in production and when using HTTPS
@@ -53,6 +53,18 @@ export const getCookieOptions = (req) => {
     // In production, we need SameSite=None for cross-domain requests (but not for Safari)
     cookieOptions.sameSite = "None";
     cookieOptions.secure = true;
+    // Explicitly set domain for better cross-origin support
+    // This helps with cookies being sent properly between frontend and backend on different domains
+    cookieOptions.domain = undefined; // Let the browser determine the domain automatically
+  }
+  
+  // Additional fix for Render deployment
+  // When deploying on Render, we need to ensure cookies work across origins
+  if (isProd && req.headers.host && req.headers.host.includes('onrender.com')) {
+    cookieOptions.sameSite = "None";
+    cookieOptions.secure = true;
+    // Don't set domain explicitly for Render deployments to avoid issues
+    cookieOptions.domain = undefined;
   }
   
   return cookieOptions;
