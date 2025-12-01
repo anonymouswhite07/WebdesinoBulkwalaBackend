@@ -59,7 +59,21 @@ export async function sendResetPasswordEmail(toEmail, userId, resetToken) {
       throw new Error("Frontend URL is not configured");
     }
     
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${userId}/${resetToken}`;
+    // Parse FRONTEND_URL as JSON array and select the first URL (or a specific one for production)
+    let frontendUrls;
+    try {
+      frontendUrls = JSON.parse(process.env.FRONTEND_URL);
+    } catch (parseError) {
+      // If parsing fails, treat it as a single URL string
+      frontendUrls = [process.env.FRONTEND_URL];
+    }
+    
+    // Select the appropriate frontend URL
+    // In production, you might want to select a specific production URL
+    // For now, we'll use the first URL in the array
+    const frontendUrl = Array.isArray(frontendUrls) ? frontendUrls[0] : frontendUrls;
+    
+    const resetLink = `${frontendUrl}/reset-password/${userId}/${resetToken}`;
     console.log("📧 Sending password reset email to:", toEmail);
     console.log("🔗 Reset link:", resetLink);
 
