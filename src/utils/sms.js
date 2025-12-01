@@ -22,7 +22,16 @@ export const sendOtpSms = async (phone) => {
     return "pending"; // Simulate pending status
   }
   
+  // Check if required environment variables are present
+  if (!process.env.TWILIO_VERIFY_SERVICE_SID) {
+    console.error("❌ TWILIO_VERIFY_SERVICE_SID is missing");
+    throw new Error("Twilio Verify Service SID is not configured");
+  }
+  
   try {
+    console.log("📱 Sending OTP to:", `+91${phone}`);
+    console.log("🔧 Using service SID:", process.env.TWILIO_VERIFY_SERVICE_SID);
+    
     const result = await client.verify.v2
       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
       .verifications.create({
@@ -33,8 +42,13 @@ export const sendOtpSms = async (phone) => {
     console.log("✅ OTP sent via Twilio:", result.status);
     return result.status;
   } catch (error) {
-    console.error("❌ Twilio Verify Send Error:", error);
-    throw new Error("Failed to send OTP via Twilio Verify");
+    console.error("❌ Twilio Verify Send Error:", {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      moreInfo: error.moreInfo
+    });
+    throw new Error(`Failed to send OTP via Twilio Verify: ${error.message}`);
   }
 };
 
@@ -46,7 +60,16 @@ export const verifyOtpSms = async (phone, otp) => {
     return otp && otp.length > 0;
   }
   
+  // Check if required environment variables are present
+  if (!process.env.TWILIO_VERIFY_SERVICE_SID) {
+    console.error("❌ TWILIO_VERIFY_SERVICE_SID is missing");
+    throw new Error("Twilio Verify Service SID is not configured");
+  }
+  
   try {
+    console.log("📱 Verifying OTP for:", `+91${phone}`);
+    console.log("🔧 Using service SID:", process.env.TWILIO_VERIFY_SERVICE_SID);
+    
     const verificationCheck = await client.verify.v2
       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
       .verificationChecks.create({
@@ -57,7 +80,12 @@ export const verifyOtpSms = async (phone, otp) => {
     console.log("✅ Verification Check:", verificationCheck.status);
     return verificationCheck.status === "approved";
   } catch (error) {
-    console.error("❌ Twilio Verify Check Error:", error);
-    throw new Error("Failed to verify OTP via Twilio Verify");
+    console.error("❌ Twilio Verify Check Error:", {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      moreInfo: error.moreInfo
+    });
+    throw new Error(`Failed to verify OTP via Twilio Verify: ${error.message}`);
   }
 };

@@ -53,7 +53,15 @@ export async function sendResetPasswordEmail(toEmail, userId, resetToken) {
   }
   
   try {
+    // Check if required environment variables are present
+    if (!process.env.FRONTEND_URL) {
+      console.error("❌ FRONTEND_URL is missing");
+      throw new Error("Frontend URL is not configured");
+    }
+    
     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${userId}/${resetToken}`;
+    console.log("📧 Sending password reset email to:", toEmail);
+    console.log("🔗 Reset link:", resetLink);
 
     const { data, error } = await resend.emails.send({
       from: "no-reply@bulkwala.com",
@@ -62,7 +70,9 @@ export async function sendResetPasswordEmail(toEmail, userId, resetToken) {
       html: `
         <p>Hello,</p>
         <p>You have requested a password reset. Please click on the following link to reset your password:</p>
-        <a href="${resetLink}">Reset Password</a>
+        <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #02066F; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;">Reset Password</a>
+        <p>Or copy and paste this link in your browser:</p>
+        <p>${resetLink}</p>
         <p>This link is valid for 1 hour. If you did not request this, please ignore this email.</p>
       `,
     });
@@ -75,7 +85,10 @@ export async function sendResetPasswordEmail(toEmail, userId, resetToken) {
     console.log("Password reset email sent successfully:", data);
     return true;
   } catch (error) {
-    console.error("An unexpected error occurred while sending email:", error);
+    console.error("An unexpected error occurred while sending email:", {
+      message: error.message,
+      stack: error.stack
+    });
     return false;
   }
 }

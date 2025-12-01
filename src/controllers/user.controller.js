@@ -354,7 +354,7 @@ const resendVerifyCode = asyncHandler(async (req, res) => {
     );
 });
 
-const forgetPassword = asyncHandler(async (req, _res) => {
+const forgetPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
@@ -372,7 +372,15 @@ const forgetPassword = asyncHandler(async (req, _res) => {
   await user.save({ validateBeforeSave: false });
 
   // Send the password reset email
-  await sendResetPasswordEmail(user.email, user._id, resetPasswordToken);
+  const emailSent = await sendResetPasswordEmail(user.email, user._id, resetPasswordToken);
+  
+  if (!emailSent) {
+    throw new ApiError(500, "Failed to send reset password email");
+  }
+
+  return res
+    .status(200)
+    .json({ success: true, message: "Password reset link sent successfully" });
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
