@@ -492,7 +492,17 @@ const refreshUserToken = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
-    throw new ApiError(401, error?.message || "Invalid refresh token");
+    // Instead of throwing an error that logs out the user, we'll send a more informative response
+    console.error("Refresh token error:", error.message);
+    return res
+      .status(401)
+      .json(
+        new ApiResponse(
+          401,
+          null,
+          error?.message || "Invalid refresh token"
+        )
+      );
   }
 });
 

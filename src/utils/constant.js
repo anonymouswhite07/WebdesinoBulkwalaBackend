@@ -3,12 +3,14 @@ export const getCookieOptions = (req) => {
   const isProd = process.env.NODE_ENV === "production";
   
   // For development, use Lax sameSite to avoid cross-site cookie issues
-  // For production, we can use None if needed for cross-domain requests
+  // For production, we need to ensure secure is true when using SameSite=None
+  const isHttps = req.headers['x-forwarded-proto'] === 'https' || req.secure || req.connection.encrypted;
   const sameSite = isProd ? "None" : "Lax";
+  const secure = isProd ? isHttps : false;
   
   return {
     httpOnly: true,
-    secure: isProd, // required for SameSite=None in production
+    secure: secure, // required for SameSite=None in production and when using HTTPS
     sameSite: sameSite, // Lax for development, None for production
     path: "/", // accessible everywhere
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
