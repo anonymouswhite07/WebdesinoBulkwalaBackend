@@ -522,6 +522,21 @@ const refreshUserToken = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
+    // Handle specific JWT errors
+    if (error.name === 'TokenExpiredError') {
+      console.error("Refresh token error: Token expired");
+      return res.status(401).json(
+        new ApiResponse(401, null, "Refresh token has expired")
+      );
+    }
+    
+    if (error.name === 'JsonWebTokenError') {
+      console.error("Refresh token error: Invalid token");
+      return res.status(401).json(
+        new ApiResponse(401, null, "Invalid refresh token")
+      );
+    }
+    
     // Instead of throwing an error that logs out the user, we'll send a more informative response
     console.error("Refresh token error:", error.message);
     return res
