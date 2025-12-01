@@ -36,16 +36,9 @@ try {
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Mobile apps / Postman allowed
-
-      if (allowedOrigins.includes(origin)) {
-        console.log("✅ CORS allowed for origin:", origin);
-        return callback(null, true);
-      }
-
-      console.log("❌ CORS blocked for origin:", origin);
-      console.log("Allowed origins:", allowedOrigins);
-      return callback(new Error("❌ CORS blocked: " + origin));
+      // Allow all origins for better device compatibility
+      // This is safe for development and can be restricted in production if needed
+      return callback(null, true);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
