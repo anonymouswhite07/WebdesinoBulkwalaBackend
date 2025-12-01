@@ -91,4 +91,27 @@ app.use("/api/banners", bannerRoutes);
 // Global Error Handler - always last middleware
 app.use(globalErrorHandler);
 
+// Add a root route for health checks
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "Bulkwala Backend API is running!",
+    timestamp: new Date().toISOString(),
+    status: "OK"
+  });
+});
+
+// Add an API root route
+app.get("/api", (req, res) => {
+  res.status(200).json({
+    message: "Bulkwala Backend API is running!",
+    version: "1.0.0",
+    endpoints: {
+      users: "/api/users",
+      products: "/api/product",
+      categories: "/api/category",
+      orders: "/api/order"
+    }
+  });
+});
+
 export default app;
